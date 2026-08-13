@@ -24,7 +24,7 @@ async def seed_database():
         test_user = User(
             org_id=org.id,
             plan_id=pro_plan.id,
-            email="dev@acmecorp.local",
+            email="dev@acmecorp.com",
             password_hash="bcrypt_hash_placeholder",
             full_name="Test Dev"
         )
