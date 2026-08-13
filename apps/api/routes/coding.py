@@ -19,6 +19,7 @@ from packages.db.models import User
 
 from ..dependencies.auth import get_current_authenticated_user
 from ..middleware.rate_limiter import rate_limiter
+from ..services.fim_context import build_semantic_fim_prompt
 from ..services.router import model_router
 from ..services.telemetry import record_usage_telemetry
 
@@ -295,9 +296,18 @@ async def code_completions(
         request_type="autocomplete",
     )
 
+    # Apply semantic AST/token-aware context windowing if raw prefix/suffix isn't already tagged
+    formatted_prompt = req.prompt
+    if "<|fim_prefix|>" not in req.prompt and "<PRE>" not in req.prompt:
+        formatted_prompt = build_semantic_fim_prompt(
+            prefix=req.prompt,
+            suffix="",
+            model_name=model_record.id,
+        )
+
     worker_payload = {
         "model": model_record.id,
-        "prompt": req.prompt,
+        "prompt": formatted_prompt,
         "sampling_params": {
             "temperature": req.temperature,
             "max_tokens": req.max_tokens,

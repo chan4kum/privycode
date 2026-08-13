@@ -52,3 +52,10 @@ Agents can use this document to explicitly track progress by marking the checkbo
 - [x] **ENG-060**: Write an end-to-end Python test script simulating an extension user completing a FIM request and Chat request against the Mock Worker.
 - [x] **ENG-061**: Build `services/benchmark` Python CLI harness.
 - [x] **ENG-062**: Run benchmark harness with sample code snippets to verify exact TTFT (Time To First Token) and latency logging metrics.
+
+## Phase 7: Real GPU Inference & Multi-Backend Engine
+- [x] **ENG-070**: Implement multi-backend LLM adapters for vLLM, Ollama, Groq, and Mock in `services/inference_worker`.
+- [x] **ENG-071**: Implement semantic FIM context windowing engine (`apps/api/services/fim_context.py`) preserving top-of-file imports and formatting model-specific tags (Qwen, DeepSeek, StarCoder).
+- [x] **ENG-072**: Enhance ModelRouter with dynamic fallback and provider degradation handling.
+- [x] **ENG-073**: Write unit tests for FIM sliding windowing and LLM adapters (`tests/test_fim_context.py`, `tests/test_inference_adapters.py`).
+

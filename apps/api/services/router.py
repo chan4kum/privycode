@@ -77,7 +77,13 @@ class ModelRouter:
             .limit(1)
         )
         worker = worker_res.scalar_one_or_none()
-        worker_url = worker.base_url if worker else model.worker_url
+        
+        # Primary worker or fallback
+        if worker:
+            worker_url = worker.base_url
+        else:
+            logger.warning("No healthy worker with fresh heartbeat found. Falling back to default registered model URL.")
+            worker_url = model.worker_url or "http://localhost:8001"
 
         logger.info(f"Routed [{request_type}:{mode}] for user {user.id} -> model '{model.id}' @ '{worker_url}'")
         return model, worker_url
