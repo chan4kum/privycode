@@ -68,6 +68,16 @@ async def gateway_health_check():
         "environment": settings.environment,
     }
 
+@app.get("/ui", tags=["UI Test Bench"])
+@app.get("/", tags=["UI Test Bench"])
+async def serve_ui_test_bench():
+    """Serves the live interactive SovereignForge & PrivyCode test bench."""
+    static_file = Path(__file__).parent / "static" / "index.html"
+    if static_file.exists():
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(content=static_file.read_text(encoding="utf-8"))
+    return {"message": "UI test bench not found"}
+
 if __name__ == "__main__":
     import uvicorn
 

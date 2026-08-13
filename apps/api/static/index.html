@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SovereignForge & PrivyCode — Live Test Bench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --border-color: #30363d;
+      --text-primary: #f0f6fc;
+      --text-secondary: #8b949e;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-purple: #bc8cff;
+      --accent-red: #f85149;
+      --accent-orange: #d29922;
+      --card-bg: rgba(22, 27, 34, 0.7);
+      --glass-border: 1px solid rgba(240, 246, 252, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(22, 27, 34, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: var(--glass-border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      color: #fff;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--accent-green);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .auth-input-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-tertiary);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: var(--glass-border);
+    }
+
+    .auth-input-group input {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      width: 220px;
+      outline: none;
+    }
+
+    .btn {
+      background: var(--accent-blue);
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: var(--glass-border);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(240, 246, 252, 0.1);
+    }
+
+    .container {
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      flex: 1;
+    }
+
+    /* Sidebar Status */
+    .sidebar-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(8px);
+      border: var(--glass-border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(240, 246, 252, 0.05);
+      font-size: 13px;
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-label {
+      color: var(--text-secondary);
+    }
+
+    .status-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      margin-right: 6px;
+    }
+
+    /* Main Workspace Tabs */
+    .main-workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      color: var(--accent-blue);
+      background: rgba(88, 166, 255, 0.1);
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    /* Editor / Playground Panels */
+    .editor-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .editor-box {
+      background: var(--bg-secondary);
+      border: var(--glass-border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .editor-header {
+      background: var(--bg-tertiary);
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: var(--glass-border);
+    }
+
+    textarea.code-area {
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 14px;
+      resize: vertical;
+      min-height: 240px;
+      outline: none;
+    }
+
+    .output-box {
+      background: #090d13;
+      border: var(--glass-border);
+      border-radius: 10px;
+      padding: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--accent-green);
+      min-height: 240px;
+      max-height: 480px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* Chat Messages */
+    .chat-messages {
+      background: var(--bg-secondary);
+      border: var(--glass-border);
+      border-radius: 10px;
+      padding: 16px;
+      height: 380px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .msg {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: rgba(88, 166, 255, 0.15);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      color: #fff;
+    }
+
+    .msg.ai {
+      align-self: flex-start;
+      background: var(--bg-tertiary);
+      border: var(--glass-border);
+      color: var(--text-primary);
+    }
+
+    .chat-input-bar {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input-bar input {
+      flex: 1;
+      background: var(--bg-secondary);
+      border: var(--glass-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .metrics-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 8px 12px;
+      background: rgba(22, 27, 34, 0.5);
+      border-radius: 6px;
+    }
+
+    .metrics-bar span b {
+      color: var(--accent-blue);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">🛡️</div>
+      <div class="brand-title">SovereignForge Live UI Test Bench</div>
+      <div class="brand-badge">● Zero Retention Active</div>
+    </div>
+    <div class="header-actions">
+      <div class="auth-input-group">
+        <span style="color: var(--text-secondary); font-size: 11px;">API Key:</span>
+        <input type="password" id="apiKeyInput" value="sk_live_dev_test_12345" />
+      </div>
+      <button class="btn btn-secondary" id="btnTestAuth" onclick="checkAuth()">Verify Profile</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Left Sidebar Status -->
+    <div class="sidebar-panel">
+      <div class="card">
+        <div class="card-title">
+          <span>System Status</span>
+          <span class="status-indicator"></span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Gateway:</span>
+          <span class="status-val" id="gwStatus" style="color: var(--accent-green);">ONLINE (:8000)</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Mock Worker:</span>
+          <span class="status-val" id="workerStatus" style="color: var(--accent-green);">HEALTHY (:8001)</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Active Plan:</span>
+          <span class="status-val" id="userPlan" style="color: var(--accent-purple);">PRO</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Monthly Quota:</span>
+          <span class="status-val" id="userQuota">0 / 50M tok</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Active Models</div>
+        <div class="status-item">
+          <span class="status-label">Balanced Tier:</span>
+          <span class="status-val">mock-qwen-32b</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Fast Tier:</span>
+          <span class="status-val">mock-qwen-7b</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Workspace -->
+    <div class="main-workspace">
+      <div class="tabs">
+        <button class="tab-btn active" id="tabChatBtn" onclick="switchTab('chat')">💬 Repository Chat</button>
+        <button class="tab-btn" id="tabFimBtn" onclick="switchTab('fim')">⚡ FIM Autocomplete</button>
+        <button class="tab-btn" id="tabEditBtn" onclick="switchTab('edit')">✨ Inline Diff Edit</button>
+      </div>
+
+      <!-- Chat Tab -->
+      <div id="tabChat" class="tab-content active">
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg ai">👋 Welcome to PrivyCode & SovereignForge! You are connected to the live Gateway with zero prompt retention. Ask a coding question or explore the codebase.</div>
+        </div>
+        <div class="chat-input-bar">
+          <input type="text" id="chatInput" placeholder="Ask about privacy architecture, async models, or code refactoring..." onkeydown="if(event.key==='Enter') sendChat();" />
+          <button class="btn" id="btnSendChat" onclick="sendChat()">Send Stream</button>
+        </div>
+        <div class="metrics-bar" id="chatMetrics">
+          <span>TTFT: <b id="chatTtft">0ms</b></span>
+          <span>Tokens: <b id="chatTokens">0</b></span>
+          <span>Throughput: <b id="chatTps">0 tok/s</b></span>
+        </div>
+      </div>
+
+      <!-- FIM Tab -->
+      <div id="tabFim" class="tab-content">
+        <div class="editor-layout">
+          <div class="editor-box">
+            <div class="editor-header">
+              <span>Input Prefix & Suffix (FIM Prompt)</span>
+              <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;" id="btnTriggerFim" onclick="runFim()">Trigger Completion</button>
+            </div>
+            <textarea class="code-area" id="fimPrompt"><|fim_prefix|>async def fetch_user_data(user_id: int):
+    """Fetches user metadata from cache or database."""
+    <|fim_suffix|>
+    return user_data<|fim_middle|></textarea>
+          </div>
+          <div class="editor-box">
+            <div class="editor-header">Generated Completion Output</div>
+            <div class="output-box" id="fimOutput">// Click 'Trigger Completion' to test live FIM stream...</div>
+          </div>
+        </div>
+        <div class="metrics-bar" id="fimMetrics">
+          <span>Latency: <b id="fimLatency">0ms</b></span>
+          <span>Status: <b id="fimStatus" style="color: var(--accent-green);">IDLE</b></span>
+        </div>
+      </div>
+
+      <!-- Edit Tab -->
+      <div id="tabEdit" class="tab-content">
+        <div class="editor-layout">
+          <div class="editor-box">
+            <div class="editor-header">Original Code</div>
+            <textarea class="code-area" id="editOriginal">def compute_totals(items):
+    total = 0
+    for item in items:
+        total += item['price']
+    return total</textarea>
+          </div>
+          <div class="editor-box">
+            <div class="editor-header">Refactored Result (Cmd+I)</div>
+            <div class="output-box" id="editOutput">// Click 'Generate Edit' to execute refactoring...</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="text" id="editInstruction" style="flex:1; background: var(--bg-secondary); border: var(--glass-border); padding: 10px 14px; border-radius: 8px; color: #fff; font-size: 13px;" value="Convert loop to functional sum expression with type hints" />
+          <button class="btn" id="btnRunEdit" onclick="runEdit()">Generate Edit</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = window.location.origin;
+
+    function getApiKey() {
+      return document.getElementById("apiKeyInput").value.trim();
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      if (tabId === 'chat') {
+        document.getElementById('tabChatBtn').classList.add('active');
+        document.getElementById('tabChat').classList.add('active');
+      } else if (tabId === 'fim') {
+        document.getElementById('tabFimBtn').classList.add('active');
+        document.getElementById('tabFim').classList.add('active');
+      } else {
+        document.getElementById('tabEditBtn').classList.add('active');
+        document.getElementById('tabEdit').classList.add('active');
+      }
+    }
+
+    async function checkAuth() {
+      try {
+        const res = await fetch(`${BASE_URL}/v1/me`, {
+          headers: { 'Authorization': `Bearer ${getApiKey()}` }
+        });
+        if (res.ok) {
+          const user = await res.json();
+          document.getElementById('userPlan').innerText = user.role.toUpperCase();
+          alert(`Authenticated as: ${user.email} (${user.role})`);
+        } else {
+          alert(`Auth Error: HTTP ${res.status}`);
+        }
+      } catch (e) {
+        alert(`Connection Error: ${e.message}`);
+      }
+    }
+
+    async function sendChat() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      const msgContainer = document.getElementById('chatMessages');
+      msgContainer.innerHTML += `<div class="msg user">${text}</div>`;
+      
+      const aiMsg = document.createElement('div');
+      aiMsg.className = 'msg ai';
+      aiMsg.innerText = '...';
+      msgContainer.appendChild(aiMsg);
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+
+      const startTime = performance.now();
+      let firstTokenTime = null;
+      let tokenCount = 0;
+
+      try {
+        const res = await fetch(`${BASE_URL}/v1/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getApiKey()}`
+          },
+          body: JSON.stringify({
+            model: 'mock-qwen-32b',
+            messages: [{ role: 'user', content: text }],
+            stream: true
+          })
+        });
+
+        if (!res.ok) {
+          aiMsg.innerText = `Error: HTTP ${res.status}`;
+          return;
+        }
+
+        aiMsg.innerText = '';
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (line.startsWith('data: ') && !line.endsWith('[DONE]')) {
+              if (!firstTokenTime) {
+                firstTokenTime = performance.now() - startTime;
+                document.getElementById('chatTtft').innerText = `${firstTokenTime.toFixed(1)}ms`;
+              }
+              try {
+                const parsed = JSON.parse(line.slice(6));
+                const delta = parsed.choices?.[0]?.delta?.content || '';
+                aiMsg.innerText += delta;
+                tokenCount++;
+              } catch (err) {
+                // Ignore raw lines
+              }
+            }
+          }
+          msgContainer.scrollTop = msgContainer.scrollHeight;
+        }
+
+        const totalTime = (performance.now() - startTime) / 1000;
+        document.getElementById('chatTokens').innerText = tokenCount;
+        document.getElementById('chatTps').innerText = `${(tokenCount / Math.max(0.01, totalTime)).toFixed(1)} tok/s`;
+
+      } catch (err) {
+        aiMsg.innerText = `Fetch Error: ${err.message}`;
+      }
+    }
+
+    async function runFim() {
+      const prompt = document.getElementById('fimPrompt').value;
+      const outBox = document.getElementById('fimOutput');
+      outBox.innerText = 'Connecting to FIM pipeline...';
+      const start = performance.now();
+
+      try {
+        const res = await fetch(`${BASE_URL}/v1/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getApiKey()}`
+          },
+          body: JSON.stringify({
+            model: 'mock-qwen-7b',
+            prompt: prompt,
+            max_tokens: 64,
+            stream: false
+          })
+        });
+
+        const elapsed = (performance.now() - start).toFixed(1);
+        document.getElementById('fimLatency').innerText = `${elapsed}ms`;
+
+        if (res.ok) {
+          const data = await res.json();
+          outBox.innerText = data.choices?.[0]?.text || data.choices?.[0]?.message?.content || JSON.stringify(data, null, 2);
+          document.getElementById('fimStatus').innerText = 'SUCCESS';
+        } else {
+          outBox.innerText = `Error: HTTP ${res.status}`;
+          document.getElementById('fimStatus').innerText = 'ERROR';
+        }
+      } catch (e) {
+        outBox.innerText = `Error: ${e.message}`;
+        document.getElementById('fimStatus').innerText = 'ERROR';
+      }
+    }
+
+    async function runEdit() {
+      const input = document.getElementById('editOriginal').value;
+      const instruction = document.getElementById('editInstruction').value;
+      const outBox = document.getElementById('editOutput');
+      outBox.innerText = 'Refactoring with zero-retention model...';
+
+      try {
+        const res = await fetch(`${BASE_URL}/v1/edits`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getApiKey()}`
+          },
+          body: JSON.stringify({
+            model: 'mock-qwen-32b',
+            input: input,
+            instruction: instruction,
+            stream: false
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          outBox.innerText = data.choices?.[0]?.text || data.choices?.[0]?.message?.content || JSON.stringify(data, null, 2);
+        } else {
+          outBox.innerText = `Error: HTTP ${res.status}`;
+        }
+      } catch (e) {
+        outBox.innerText = `Error: ${e.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

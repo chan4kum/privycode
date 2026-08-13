@@ -67,8 +67,8 @@ def generate_mock_tokens(prompt: str | None, messages: list[dict] | None) -> lis
             f"# Generated code response to: {last_msg[:60]}...\n"
             f"async def process_task(data: dict) -> dict:\n"
             f"    # Validating zero-retention privacy boundary\n"
-            f"    sanitized = {k: v for k, v in data.items() if k != 'secret'}\n"
-            f"    return {'status': 'processed', 'payload': sanitized}\n"
+            f"    sanitized = {{k: v for k, v in data.items() if k != 'secret'}}\n"
+            f"    return {{'status': 'processed', 'payload': sanitized}}\n"
             f"```\n\n"
             f"I have refactored the function to ensure in-memory handling and strict error boundaries."
         )
