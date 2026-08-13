@@ -59,3 +59,10 @@ Agents can use this document to explicitly track progress by marking the checkbo
 - [x] **ENG-072**: Enhance ModelRouter with dynamic fallback and provider degradation handling.
 - [x] **ENG-073**: Write unit tests for FIM sliding windowing and LLM adapters (`tests/test_fim_context.py`, `tests/test_inference_adapters.py`).
 
+## Phase 8: Deep Codebase Understanding & Symbol Graph
+- [x] **ENG-080**: Build in-memory client-side AST SymbolGraph in TypeScript (`apps/vscode-extension/src/symbolGraph.ts`) supporting Python, TS/JS, Go, and Rust.
+- [x] **ENG-081**: Build ContextEngine (`apps/vscode-extension/src/contextEngine.ts`) resolving `@file`, `@symbol`, and `@folder` mentions with token budgeting.
+- [x] **ENG-082**: Upgrade Chat Webview (`apps/vscode-extension/src/chatViewProvider.ts`) with real-time `@` autocompletion popup and context chips.
+- [x] **ENG-083**: Integrate workspace file watchers in `apps/vscode-extension/src/extension.ts` for live in-memory symbol re-indexing.
+- [x] **ENG-084**: Write and pass SymbolGraph extraction unit tests (`apps/vscode-extension/test/symbolGraph.test.ts`).
+

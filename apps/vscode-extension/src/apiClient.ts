@@ -11,6 +11,8 @@ export interface FileContext {
   selection_range?: { start_line: number; end_line: number };
 }
 
+export type ContextFileItem = FileContext;
+
 export interface ChatRequest {
   model: string;
   mode?: "cheap" | "balanced" | "strong";
