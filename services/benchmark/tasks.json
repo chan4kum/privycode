@@ -1,0 +1,36 @@
+[
+  {
+    "id": "task_fim_01",
+    "name": "Python Async Handler Completion",
+    "type": "autocomplete",
+    "prompt": "<|fim_prefix|>async def fetch_user(user_id: int):\n    query = select(User).where(User.id == user_id)\n<|fim_suffix|>\n    return user<|fim_middle|>",
+    "expected_keywords": ["await", "session.execute", "scalar"]
+  },
+  {
+    "id": "task_fim_02",
+    "name": "TypeScript Type Definition",
+    "type": "autocomplete",
+    "prompt": "<|fim_prefix|>interface UserProfile {\n  id: string;\n  name: string;\n<|fim_suffix|>\n}<|fim_middle|>",
+    "expected_keywords": ["email:", "role:"]
+  },
+  {
+    "id": "task_edit_01",
+    "name": "Synchronous to Async Refactoring",
+    "type": "edit",
+    "input": "def calculate_totals(items):\n    return sum(item.price for item in items)",
+    "instruction": "Convert to async function and add type annotations for Item list and float return",
+    "expected_keywords": ["async def", "list[Item]", "float"]
+  },
+  {
+    "id": "task_chat_01",
+    "name": "Zero-Retention Architecture Question",
+    "type": "chat",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain how PrivyCode prevents source code from being stored in databases or logs."
+      }
+    ],
+    "expected_keywords": ["in-memory", "sanitized", "RAM", "telemetry"]
+  }
+]

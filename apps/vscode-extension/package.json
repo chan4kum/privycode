@@ -1,0 +1,103 @@
+{
+  "name": "privycode",
+  "displayName": "PrivyCode",
+  "description": "Privacy-First AI Coding Companion powered by SovereignForge",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Programming Languages", "Machine Learning", "Snippets"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "privycode.editSelection",
+        "title": "PrivyCode: Edit Selection with AI",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "privycode.openChat",
+        "title": "PrivyCode: Open Chat",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "privycode.checkConnection",
+        "title": "PrivyCode: Check Server Connection"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "privycode.editSelection",
+        "key": "cmd+i",
+        "mac": "cmd+i",
+        "win": "ctrl+i",
+        "when": "editorHasSelection"
+      },
+      {
+        "command": "privycode.openChat",
+        "key": "cmd+shift+l",
+        "mac": "cmd+shift+l",
+        "win": "ctrl+shift+l"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "privycode-sidebar",
+          "title": "PrivyCode",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "privycode-sidebar": [
+        {
+          "type": "webview",
+          "id": "privycode.chatView",
+          "name": "PrivyCode Chat"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "PrivyCode",
+      "properties": {
+        "privycode.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "The SovereignForge API Gateway endpoint URL."
+        },
+        "privycode.apiKey": {
+          "type": "string",
+          "default": "sk_live_dev_test_12345",
+          "description": "Your SovereignForge API Key."
+        },
+        "privycode.model": {
+          "type": "string",
+          "default": "mock-qwen-32b",
+          "description": "Preferred model for chat and edits."
+        },
+        "privycode.enableAutocomplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline ghost-text code completions."
+        },
+        "privycode.debounceMs": {
+          "type": "number",
+          "default": 250,
+          "description": "Keystroke debounce delay for inline completions in milliseconds."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3"
+  }
+}
