@@ -10,6 +10,14 @@ async def seed_database():
 
     print("Inserting seed data...")
     async with AsyncSessionLocal() as session:
+        from sqlalchemy import select
+
+        # Check if already seeded
+        existing_plan = await session.execute(select(Plan).where(Plan.code == "free"))
+        if existing_plan.scalars().first():
+            print("✓ Database already seeded! (sk_live_dev_test_12345)")
+            return
+
         # Seed Plans
         free_plan = Plan(code="free", monthly_request_limit=1000, monthly_token_limit=1000000, strong_model_allowed=False)
         pro_plan = Plan(code="pro", monthly_request_limit=10000, monthly_token_limit=50000000, strong_model_allowed=True)
@@ -47,13 +55,13 @@ async def seed_database():
             id="mock-qwen-7b", 
             display_name="Mock Qwen 7B (Fast)", 
             provider="mock", 
-            worker_url="http://mock-worker:8001"
+            worker_url="http://localhost:8001"
         )
         mock_strong = ModelRegistry(
             id="mock-qwen-32b", 
             display_name="Mock Qwen 32B (Strong)", 
             provider="mock", 
-            worker_url="http://mock-worker:8001"
+            worker_url="http://localhost:8001"
         )
         session.add_all([mock_cheap, mock_strong])
         
