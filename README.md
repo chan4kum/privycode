@@ -4,7 +4,8 @@
 
 **Self-Hosted, Air-Gapped, Zero-Retention AI Coding Companion & Control Plane**
 
-[![CI/CD Pipeline](https://github.com/chan4kum/privycode/actions/workflows/ci.yml/badge.svg)](https://github.com/chan4kum/privycode/actions/workflows/ci.yml)
+[![CI Pipeline](https://github.com/chan4kum/privycode/actions/workflows/ci.yml/badge.svg)](https://github.com/chan4kum/privycode/actions/workflows/ci.yml)
+[![CD Deployment](https://github.com/chan4kum/privycode/actions/workflows/cd.yml/badge.svg)](https://github.com/chan4kum/privycode/actions/workflows/cd.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.14-blue)](https://www.python.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6)](https://www.typescriptlang.org/)
@@ -13,7 +14,7 @@
 
 *Enterprise-grade alternative to GitHub Copilot & Cursor designed for defense, healthcare, financial, and air-gapped sovereign environments.*
 
-[Architecture](#-full-system-architecture) • [Quick Start](#-quick-start) • [VS Code Extension](#-vscode--cursor-extension) • [Admin Dashboard](#-enterprise-admin-ops-dashboard) • [Helm Deployment](#-kubernetes-helm-deployment) • [Benchmarks](#-performance--latency-benchmarks)
+[Architecture](#-full-system-architecture) • [Developer CLI (Makefile)](#-developer--operations-makefile) • [Quick Start](#-quick-start) • [VS Code Extension](#-vscode--cursor-extension) • [Admin Dashboard](#-enterprise-admin-ops-dashboard) • [GCP Deployment](#-google-cloud-platform-gcp-deployment) • [Benchmarks](#-performance--latency-benchmarks)
 
 </div>
 
@@ -24,7 +25,7 @@
 ```mermaid
 flowchart TD
     subgraph ClientLayer ["1. Developer Environment (VS Code & Cursor)"]
-        PrivyCodeExt["PrivyCode Extension (.vsix)"]
+        PrivyCodeExt["PrivyCode Extension (.vsix - 35.37 KB)"]
         SymbolGraph["Client In-Memory AST Symbol Graph\n(Python, TS, JS, Go, Rust)"]
         ContextEngine["Context Engine & @Mentions\n(@file, @symbol, @folder)"]
         ChatWebview["Sidebar Chat UI\n(Context Chips & Autocomplete)"]
@@ -38,6 +39,7 @@ flowchart TD
         ZeroRetentionAudit["Zero-Retention Cryptographic Auditor\n(X-PrivyCode-Zero-Retention: Verified)"]
         Router["Model Router & Failover Engine"]
         FIMContextEngine["Semantic FIM Context Engine\n(Top-Imports Preservation & AST Slicing)"]
+        SecurityHeaders["HTTP Security Headers Middleware\n(HSTS, CSP, X-Frame-Options, X-Content-Type)"]
     end
 
     subgraph InferenceFleet ["3. Unified GPU Worker Fleet (:8001)"]
@@ -65,7 +67,8 @@ flowchart TD
     PrivyCodeExt --> FIMProvider
 
     ContextEngine -- "HTTPS TLS 1.3" --> AuthMiddleware
-    AuthMiddleware --> TierEnforcer
+    AuthMiddleware --> SecurityHeaders
+    SecurityHeaders --> TierEnforcer
     TierEnforcer --> SecretRedactor
     SecretRedactor --> ZeroRetentionAudit
     ZeroRetentionAudit --> Router
@@ -100,26 +103,31 @@ flowchart TD
 
 ---
 
+## 🛠️ Developer & Operations Makefile
+
+Single-command shortcuts for all developer workflows:
+
+| Command | Description |
+| :--- | :--- |
+| `make dev` | Starts PostgreSQL & Redis containers, and runs database seeds. |
+| `make test` | Runs the full Pytest unit test suite (18 tests) with 0 warnings. |
+| `make e2e` | Executes the complete 7-step API integration test suite. |
+| `make benchmark` | Runs the latency and token throughput benchmark CLI. |
+| `make package-ext` | Compiles TypeScript and builds `privycode-0.1.0.vsix` (35 KB). |
+| `make docker-build` | Builds hardened multi-stage Gateway & Worker Docker images. |
+| `make gcp-apply` | Provisions GCP infrastructure (VPC, Cloud SQL, Redis, Cloud Run). |
+| `make clean` | Cleans up cache directories and build artifacts. |
+
+---
+
 ## 🚀 Quick Start
 
-### 1. Start Infrastructure (PostgreSQL & Redis)
+### 1. Start Infrastructure & Database
 ```bash
-docker compose up -d postgres redis
+make dev
 ```
 
-### 2. Setup Python Environment & Seed Database
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r packages/db/requirements.txt
-pip install -r apps/api/requirements.txt
-pip install -r services/inference_worker/requirements.txt
-
-# Initialize database schema & default test keys
-python packages/db/seed.py
-```
-
-### 3. Launch Services
+### 2. Launch Services
 ```bash
 # Terminal 1: Launch SovereignForge Gateway (:8000)
 PYTHONPATH=. uvicorn apps.api.main:app --port 8000 --reload
@@ -128,8 +136,8 @@ PYTHONPATH=. uvicorn apps.api.main:app --port 8000 --reload
 PYTHONPATH=. python services/inference_worker/main.py
 ```
 
-### 4. Access Live Dashboards
-* **Interactive Web Test Bench**: [`http://localhost:8000/ui`](http://localhost:8000/ui) *(Test chat, FIM, and code refactoring live in browser)*
+### 3. Access Live Web Interfaces
+* **Interactive Web Test Bench**: [`http://localhost:8000/ui`](http://localhost:8000/ui) *(Test chat, FIM, and code refactoring in browser)*
 * **Enterprise Admin Ops Dashboard**: [`http://localhost:8000/admin/dashboard`](http://localhost:8000/admin/dashboard) *(Monitor GPU fleet, throughput, quotas, and audit logs)*
 
 ---
@@ -143,7 +151,7 @@ code --install-extension apps/vscode-extension/privycode-0.1.0.vsix
 ```
 
 ### Extension Features
-1. **Ghost-Text Inline Autocomplete (FIM)**: Triggers automatically as you type with $< 40\text{ms}$ latency.
+1. **Ghost-Text Inline Autocomplete (FIM)**: Triggers automatically as you type with $< 45\text{ms}$ latency.
 2. **Context-Aware Sidebar Chat**: Open chat with `Cmd+Shift+L` and use `@symbol <name>` or `@file <path>` to inject token-budgeted repository context.
 3. **Inline Refactoring & Diff Generation**: Select code and press `Cmd+I` to refactor with custom instructions.
 4. **In-Memory AST Symbol Graph**: Live workspace symbol resolution in Python, TypeScript/JavaScript, Go, and Rust.
@@ -165,16 +173,18 @@ The built-in Admin Dashboard (`GET /admin/dashboard`) provides real-time cluster
 Deploy to Google Cloud Platform with automated Terraform Infrastructure as Code:
 
 ```bash
-# 1. Configure Terraform variables
+# 1-Command Automated Cloud Deployer:
+./deploy/gcp/deploy.sh
+```
+
+Or deploy manually via Terraform:
+```bash
 cd deploy/gcp/terraform
 cp terraform.tfvars.example terraform.tfvars
-# Edit project_id, region, and db tier in terraform.tfvars
-
-# 2. Provision GCP Cloud Infrastructure (VPC, Cloud SQL, Redis, Cloud Run, Cloud Armor)
 terraform init
 terraform apply -auto-approve
 
-# 3. Deploy GKE NVIDIA GPU vLLM Worker (NVIDIA L4 / A100)
+# Deploy GKE NVIDIA GPU vLLM Worker (NVIDIA L4 / A100)
 kubectl apply -f deploy/gcp/gke-gpu-vllm.yaml
 ```
 
@@ -208,13 +218,13 @@ Tested with `services/benchmark/main.py` against local Gateway and Inference Wor
 
 | Task ID | Task Description | Type | TTFT (ms) | Total Latency | Tokens | Throughput | Status |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| `task_fim_01` | Python Async Handler Completion | Autocomplete | **43.7 ms** | 238.2 ms | 13 | 66.9 tok/s | 🟢 **PASS** |
-| `task_fim_02` | TypeScript Interface Definition | Autocomplete | **36.8 ms** | 231.0 ms | 13 | 66.9 tok/s | 🟢 **PASS** |
-| `task_edit_01` | Synchronous to Async Refactoring | Edit / Diff | **39.5 ms** | 267.1 ms | 15 | 65.9 tok/s | 🟢 **PASS** |
-| `task_chat_01` | Zero-Retention Architecture Q&A | Multi-Turn Chat | **37.7 ms** | 1047.8 ms | 63 | 62.4 tok/s | 🟢 **PASS** |
+| `task_fim_01` | Python Async Handler Completion | Autocomplete | **47.8 ms** | 218.1 ms | 14 | 82.2 tok/s | 🟢 **PASS** |
+| `task_fim_02` | TypeScript Interface Definition | Autocomplete | **44.1 ms** | 215.2 ms | 14 | 81.8 tok/s | 🟢 **PASS** |
+| `task_edit_01` | Synchronous to Async Refactoring | Edit / Diff | **39.4 ms** | 119.2 ms | 7 | 87.7 tok/s | 🟢 **PASS** |
+| `task_chat_01` | Zero-Retention Architecture Q&A | Multi-Turn Chat | **43.4 ms** | 687.1 ms | 41 | 63.7 tok/s | 🟢 **PASS** |
 
-* **Mean Time To First Token (TTFT)**: **39.4 ms** *(Target: < 250ms)*
-* **Mean Token Throughput**: **65.5 tokens/sec** *(Target: > 40 tokens/sec)*
+* **Mean Time To First Token (TTFT)**: **43.7 ms** *(Target: < 250ms)*
+* **Mean Token Throughput**: **78.8 tokens/sec** *(Target: > 40 tokens/sec)*
 
 ---
 
@@ -222,17 +232,14 @@ Tested with `services/benchmark/main.py` against local Gateway and Inference Wor
 
 Run all automated test suites across Python and TypeScript:
 ```bash
-# 1. Run Python Unit Tests (18 tests)
-PYTHONPATH=. pytest tests/
+# 1. Run All Tests
+make test
 
-# 2. Run End-to-End Integration Suite (7 flows)
-PYTHONPATH=. python tests/test_e2e_flow.py
+# 2. Run End-to-End Integration Suite
+make e2e
 
-# 3. Run Extension SymbolGraph Tests (3 tests)
-node apps/vscode-extension/out/test/symbolGraph.test.js
-
-# 4. Run Benchmark Suite
-PYTHONPATH=. python services/benchmark/main.py
+# 3. Run Benchmark Suite
+make benchmark
 ```
 
 ---
@@ -241,18 +248,22 @@ PYTHONPATH=. python services/benchmark/main.py
 
 ```text
 privycode/
-├── .github/workflows/ci.yml       # GitHub Actions CI/CD pipeline
+├── .github/workflows/
+│   ├── ci.yml                     # Continuous Integration pipeline (Pytest, TS, Terraform, Docker)
+│   └── cd.yml                     # Continuous Deployment pipeline (GCP Artifact Registry, Cloud Run, Releases)
 ├── apps/
 │   ├── api/                       # SovereignForge API Gateway (FastAPI)
-│   │   ├── middleware/            # Rate limiter, tier enforcer, request tracing
+│   │   ├── middleware/            # Rate limiter, tier enforcer, request tracing, security headers
 │   │   ├── routes/                # Coding, models, telemetry, auth, admin routes
 │   │   ├── services/              # Redactor, audit, FIM context windowing, router
 │   │   └── static/                # Web Test Bench (index.html) & Admin Dashboard (admin.html)
 │   └── vscode-extension/          # PrivyCode VS Code / Cursor Extension (TypeScript)
 │       ├── src/                   # SymbolGraph, ContextEngine, chat view, FIM provider
-│       └── privycode-0.1.0.vsix   # Production extension installer package
+│       └── privycode-0.1.0.vsix   # Production extension installer package (35 KB)
 ├── deploy/
 │   ├── airgap/install.sh          # Turnkey air-gapped bare-metal installer
+│   ├── docker/                    # Multi-stage Dockerfiles (Dockerfile.gateway, Dockerfile.worker)
+│   ├── gcp/                       # GCP Terraform IaC, Cloud Build, and GKE GPU manifests
 │   └── helm/sovereignforge/       # Production Kubernetes Helm chart & GPU manifests
 ├── docs/                          # Architecture, API specs, database schema, security designs
 ├── packages/
@@ -263,6 +274,7 @@ privycode/
 │   ├── benchmark/                 # Automated performance & latency CLI harness
 │   └── inference_worker/          # Unified inference hub (vLLM, Ollama, Groq, Mock)
 ├── tests/                         # Comprehensive unit & E2E integration test suites
+├── Makefile                       # Developer and operations command runner
 └── docker-compose.yml             # PostgreSQL 16 & Redis 7 stack
 ```
 
