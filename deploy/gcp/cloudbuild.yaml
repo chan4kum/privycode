@@ -1,0 +1,65 @@
+# ==============================================================================
+# SovereignForge & PrivyCode — Google Cloud Build CI/CD Pipeline
+# ==============================================================================
+
+steps:
+  # 1. Build Gateway Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/gateway:$SHORT_SHA'
+      - '-t'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/gateway:latest'
+      - '-f'
+      - 'deploy/docker/Dockerfile.gateway'
+      - '.'
+
+  # 2. Build Inference Worker Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/worker:$SHORT_SHA'
+      - '-t'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/worker:latest'
+      - '-f'
+      - 'deploy/docker/Dockerfile.worker'
+      - '.'
+
+  # 3. Push Gateway Images to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/gateway:$SHORT_SHA'
+
+  # 4. Push Worker Images to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/worker:$SHORT_SHA'
+
+  # 5. Deploy Gateway to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'sovereignforge-gateway'
+      - '--image=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/gateway:$SHORT_SHA'
+      - '--region=$_REGION'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--vpc-connector=prod-cr-conn'
+      - '--vpc-egress=private-ranges-only'
+
+substitutions:
+  _REGION: 'us-central1'
+  _REPO_NAME: 'prod-sovereignforge'
+
+images:
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/gateway:$SHORT_SHA'
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/worker:$SHORT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

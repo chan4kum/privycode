@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-gpu-worker
+  namespace: sovereignforge
+  labels:
+    app: vllm-gpu-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vllm-gpu-worker
+  template:
+    metadata:
+      labels:
+        app: vllm-gpu-worker
+    spec:
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-l4
+      tolerations:
+        - key: "nvidia.com/gpu"
+          operator: "Exists"
+          effect: "NoSchedule"
+      containers:
+        - name: vllm-worker
+          image: us-central1-docker.pkg.dev/sovereignforge-prod/prod-sovereignforge/worker:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8001
+              name: http
+          env:
+            - name: INFERENCE_RUNTIME
+              value: "vllm"
+            - name: MODEL_NAME
+              value: "Qwen/Qwen2.5-Coder-32B-Instruct-GPTQ-Int4"
+            - name: GPU_MEMORY_UTILIZATION
+              value: "0.90"
+            - name: MAX_MODEL_LEN
+              value: "32768"
+          resources:
+            limits:
+              nvidia.com/gpu: "1"
+              memory: 32Gi
+              cpu: "8"
+            requests:
+              nvidia.com/gpu: "1"
+              memory: 16Gi
+              cpu: "4"
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: dshm
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 45
+            periodSeconds: 15
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 16Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-gpu-worker-service
+  namespace: sovereignforge
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8001
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: vllm-gpu-worker

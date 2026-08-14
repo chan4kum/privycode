@@ -1,0 +1,4 @@
+project_id       = "your-gcp-project-id"
+region           = "us-central1"
+environment      = "prod"
+db_instance_tier = "db-custom-4-16384"

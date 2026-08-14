@@ -160,7 +160,27 @@ The built-in Admin Dashboard (`GET /admin/dashboard`) provides real-time cluster
 
 ---
 
-## ☸️ Kubernetes (Helm) Deployment
+## ☁️ Google Cloud Platform (GCP) Deployment
+
+Deploy to Google Cloud Platform with automated Terraform Infrastructure as Code:
+
+```bash
+# 1. Configure Terraform variables
+cd deploy/gcp/terraform
+cp terraform.tfvars.example terraform.tfvars
+# Edit project_id, region, and db tier in terraform.tfvars
+
+# 2. Provision GCP Cloud Infrastructure (VPC, Cloud SQL, Redis, Cloud Run, Cloud Armor)
+terraform init
+terraform apply -auto-approve
+
+# 3. Deploy GKE NVIDIA GPU vLLM Worker (NVIDIA L4 / A100)
+kubectl apply -f deploy/gcp/gke-gpu-vllm.yaml
+```
+
+---
+
+## ☸️ Kubernetes (Helm) & Air-Gapped Deployment
 
 Deploy to Amazon EKS, Google GKE, Red Hat OpenShift, or private bare-metal Kubernetes:
 
@@ -175,7 +195,7 @@ helm install sovereignforge ./deploy/helm/sovereignforge \
 ```
 
 ### 📦 1-Command Air-Gapped Bare-Metal Installer
-For air-gapped environments without Helm:
+For air-gapped bare-metal environments:
 ```bash
 ./deploy/airgap/install.sh
 ```

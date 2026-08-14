@@ -37,6 +37,18 @@ app.add_middleware(
 )
 app.add_middleware(RequestTracingMiddleware)
 
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Enforces enterprise security headers on all Gateway HTTP responses."""
+    response = await call_next(request)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
 # Global Exception Handler for Zero-Leakage Standardized Errors
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):

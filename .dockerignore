@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.pytest_cache
+node_modules
+dist
+out
+*.vsix
+.DS_Store
+*.log
+deploy/helm
+deploy/gcp
