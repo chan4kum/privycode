@@ -20,6 +20,11 @@ async def record_usage_telemetry(
     Asynchronously records anonymized token telemetry to PostgreSQL.
     Guarantees zero-retention: NO code snippets, messages, or diffs are persisted.
     """
+    if isinstance(user_id, str):
+        user_id = UUID(user_id)
+    if isinstance(worker_id, str):
+        worker_id = UUID(worker_id)
+
     try:
         async with AsyncSessionLocal() as session:
             record = UsageRecord(
