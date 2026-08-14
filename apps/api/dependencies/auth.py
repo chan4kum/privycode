@@ -17,16 +17,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from packages.db.database import get_db_session
 from packages.db.models import ApiKey, User
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 async def get_current_authenticated_user(
-    credentials: Annotated[HTTPAuthorizationCredentials, Security(security)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Security(security)],
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> User:
     """
     Validates Bearer API Key ('sk_live_...') using SHA-256 hash matching against PostgreSQL.
     Returns the User model and updates the ApiKey.last_used_at timestamp.
     """
+    if not credentials or not credentials.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing or invalid Authorization header. Provide 'Bearer sk_live_...'",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     raw_key = credentials.credentials.strip()
     if not raw_key.startswith("sk_"):
         raise HTTPException(
