@@ -73,3 +73,10 @@ Agents can use this document to explicitly track progress by marking the checkbo
 - [x] **ENG-093**: Write comprehensive unit tests for credential & PII redaction (`tests/test_redactor.py`).
 - [x] **ENG-094**: Verify live zero-retention cryptographic audit headers and secret replacement on Gateway.
 
+## Phase 10: Multi-Tenant Billing, .vsix Packaging & CI/CD
+- [x] **ENG-100**: Build multi-tenant monthly quota and tier enforcer middleware (`apps/api/middleware/tier_enforcer.py`).
+- [x] **ENG-101**: Write unit tests for tier and quota enforcements (`tests/test_tier_enforcer.py`).
+- [x] **ENG-102**: Configure extension packaging and generate release bundle `apps/vscode-extension/privycode-0.1.0.vsix` via `@vscode/vsce`.
+- [x] **ENG-103**: Build automated GitHub Actions CI/CD pipeline workflow (`.github/workflows/ci.yml`).
+- [x] **ENG-104**: Validate full test matrix across Python (16/16 unit + 7/7 E2E) and TypeScript (3/3 unit + 0 error compile).
+

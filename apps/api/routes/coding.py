@@ -20,6 +20,7 @@ from packages.db.models import User
 
 from ..dependencies.auth import get_current_authenticated_user
 from ..middleware.rate_limiter import rate_limiter
+from ..middleware.tier_enforcer import evaluate_user_tier_quota
 from ..services.audit import generate_zero_retention_headers
 from ..services.fim_context import build_semantic_fim_prompt
 from ..services.redactor import sanitize_context_files, sanitize_messages, sanitize_text
@@ -71,6 +72,9 @@ async def chat_completions(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Rate limit exceeded. Retry in {rl['reset_in_seconds']}s.",
         )
+
+    # Multi-tenant monthly subscription quota check
+    await evaluate_user_tier_quota(session=session, user=current_user, estimated_tokens=100)
 
     model_record, worker_url = await model_router.resolve_route(
         session=session,
@@ -194,6 +198,9 @@ async def code_edits(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail=f"Rate limit exceeded. Retry in {rl['reset_in_seconds']}s.",
         )
+
+    # Multi-tenant monthly subscription quota check
+    await evaluate_user_tier_quota(session=session, user=current_user, estimated_tokens=150)
 
     model_record, worker_url = await model_router.resolve_route(
         session=session,
@@ -319,6 +326,9 @@ async def code_completions(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Completion rate limit reached.",
         )
+
+    # Multi-tenant monthly subscription quota check
+    await evaluate_user_tier_quota(session=session, user=current_user, estimated_tokens=30)
 
     model_record, worker_url = await model_router.resolve_route(
         session=session,

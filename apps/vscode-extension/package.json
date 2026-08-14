@@ -3,11 +3,24 @@
   "displayName": "PrivyCode",
   "description": "Privacy-First AI Coding Companion powered by SovereignForge",
   "version": "0.1.0",
+  "publisher": "chan4kum",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chan4kum/privycode.git"
+  },
+  "license": "Apache-2.0",
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Programming Languages", "Machine Learning", "Snippets"],
-  "activationEvents": ["onStartupFinished"],
+  "categories": [
+    "Programming Languages",
+    "Machine Learning",
+    "Snippets"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
@@ -93,11 +106,13 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "package": "npx @vscode/vsce package --no-dependencies"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.9.2",
     "typescript": "^5.3.3"
   }
 }
