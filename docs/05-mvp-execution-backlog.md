@@ -87,3 +87,11 @@ Agents can use this document to explicitly track progress by marking the checkbo
 - [x] **ENG-113**: Add fleet and compliance telemetry API (`GET /api/v1/admin/stats`) and write unit tests (`tests/test_admin.py`).
 - [x] **ENG-114**: Verify live Admin Ops Dashboard with browser subagent recording and full-page screenshot.
 
+## GCP Productionization, Infrastructure as Code & Hardening
+- [x] **ENG-120**: Modernize configuration layer with Pydantic v2 `SettingsConfigDict` and eliminate all deprecation warnings (`packages/config/`).
+- [x] **ENG-121**: Author Google Cloud Platform Terraform IaC (`deploy/gcp/terraform/`) provisioning Private VPC, Cloud SQL PostgreSQL 16 (Private IP), Memorystore Redis 7, Cloud Run, and Cloud Armor.
+- [x] **ENG-122**: Author multi-stage production Dockerfiles (`Dockerfile.gateway`, `Dockerfile.worker`) running as non-root user `sovereign`.
+- [x] **ENG-123**: Build automated Google Cloud Build CI/CD pipeline (`deploy/gcp/cloudbuild.yaml`).
+- [x] **ENG-124**: Enforce HTTP Security Headers (HSTS, CSP, X-Frame-Options, X-Content-Type-Options) across API Gateway.
+- [x] **ENG-125**: Add developer Makefile for single-command testing, benchmarking, extension packaging, and GCP deployment.
+

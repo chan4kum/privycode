@@ -106,3 +106,30 @@ jobs:
           name: privycode-extension-vsix
           path: apps/vscode-extension/privycode-*.vsix
           if-no-files-found: error
+
+  docker-build-verification:
+    name: Production Docker Images Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Build Gateway Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./deploy/docker/Dockerfile.gateway
+          push: false
+          tags: sovereignforge/gateway:test
+
+      - name: Build Inference Worker Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./deploy/docker/Dockerfile.worker
+          push: false
+          tags: sovereignforge/worker:test
