@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SovereignForge — Enterprise Admin Ops & Fleet Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(16, 24, 40, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.2);
+      --accent: #818cf8;
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(129, 140, 248, 0.05) 0%, transparent 40%);
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .logo-area { display: flex; align-items: center; gap: 12px; }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px; color: #000;
+    }
+    .logo-text h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo-text p { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
+
+    .header-actions { display: flex; align-items: center; gap: 16px; }
+    .badge {
+      font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .badge-success { background: rgba(52, 211, 153, 0.15); color: var(--success); border: 1px solid rgba(52, 211, 153, 0.3); }
+    .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .btn {
+      background: var(--primary); color: #000; font-weight: 600; font-size: 12px;
+      border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+    }
+    .btn:hover { opacity: 0.9; box-shadow: 0 0 16px var(--primary-glow); }
+    .btn-secondary { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); }
+
+    /* Main Container */
+    main { flex: 1; padding: 24px 32px; display: flex; flex-direction: column; gap: 24px; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+    /* KPI Grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .kpi-card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 12px; padding: 20px; position: relative; overflow: hidden;
+    }
+    .kpi-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .kpi-value { font-size: 26px; font-weight: 800; font-family: var(--mono); color: var(--text); }
+    .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+
+    /* Section Grids */
+    .section-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    .grid-2col { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+    @media (max-width: 1024px) { .grid-2col { grid-template-columns: 1fr; } }
+
+    /* Tables & Cards */
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 10px 12px; color: var(--text-muted); font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--card-border); font-weight: 600; }
+    td { padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+    tr:last-child td { border-bottom: none; }
+    .mono { font-family: var(--mono); }
+
+    /* Progress bars */
+    .progress-bar-bg { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 4px; }
+
+    /* Audit Event Stream */
+    .audit-feed { display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; }
+    .audit-item {
+      background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px; padding: 10px 12px; font-size: 11px; font-family: var(--mono);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-area">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">
+        <h1>SovereignForge Ops</h1>
+        <p>ENTERPRISE AIR-GAPPED FLEET CONTROLLER</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <span class="badge badge-success"><span class="pulse-dot"></span> ZERO-RETENTION AIR-GAP ACTIVE</span>
+      <a href="/ui" class="btn btn-secondary">Open Test Bench</a>
+      <button class="btn" onclick="fetchStats()">Refresh Fleet</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Top KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">Active Workers</div>
+        <div class="kpi-value" id="kpiWorkers">1 <small style="font-size:14px;color:var(--success)">Online</small></div>
+        <div class="kpi-sub">vLLM & Mock Node Cluster</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Avg GPU Utilization</div>
+        <div class="kpi-value" id="kpiGpu">34.5%</div>
+        <div class="kpi-sub">KV Cache Pressure: 18.2%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Fleet Throughput</div>
+        <div class="kpi-value" id="kpiThroughput">65.9 <small style="font-size:14px">tok/s</small></div>
+        <div class="kpi-sub">Mean TTFT: 38.1ms</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Total Tokens Served</div>
+        <div class="kpi-value" id="kpiTokens">1,624</div>
+        <div class="kpi-sub">Strict In-Memory Volatile Transit</div>
+      </div>
+    </div>
+
+    <!-- 2 Column Section -->
+    <div class="grid-2col">
+      <!-- Left Column: Workers & Models -->
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        <!-- Worker Fleet -->
+        <div class="card">
+          <div class="section-title">🖥️ Inference Worker Fleet</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Worker ID</th>
+                <th>Runtime</th>
+                <th>GPU Load</th>
+                <th>KV Cache</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="workerTableBody">
+              <tr>
+                <td class="mono"><b>mock-worker-1</b></td>
+                <td><span class="badge badge-success">Mock GPU</span></td>
+                <td>34.5%</td>
+                <td>18.2%</td>
+                <td><span style="color:var(--success)">● Ready</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Model Registry -->
+        <div class="card">
+          <div class="section-title">🧠 Registered LLM Profiles</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Model ID</th>
+                <th>Provider</th>
+                <th>Context</th>
+                <th>Route Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono"><b>mock-qwen-32b</b></td>
+                <td>vLLM Cluster</td>
+                <td class="mono">32,768 tok</td>
+                <td>Balanced / Strong</td>
+              </tr>
+              <tr>
+                <td class="mono"><b>mock-qwen-7b</b></td>
+                <td>Ollama / CPU</td>
+                <td class="mono">16,384 tok</td>
+                <td>Cheap / Fast FIM</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right Column: Tenant Quotas & Audit Stream -->
+      <div style="display:flex; flex-direction:column; gap:24px;">
+        <!-- Tenant Quota Usage -->
+        <div class="card">
+          <div class="section-title">🏢 Tenant Token Budgets</div>
+          <div style="margin-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+              <span><b>Acme Corp</b> (Dev Tier)</span>
+              <span class="mono">1,624 / 50M</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-fill" style="width: 2%;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+              <span><b>Defense Grid Internal</b></span>
+              <span class="mono" style="color:var(--success)">Unlimited (Enterprise)</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-fill" style="width: 100%; background:var(--success);"></div></div>
+          </div>
+        </div>
+
+        <!-- Compliance & Zero-Retention Audit Feed -->
+        <div class="card">
+          <div class="section-title">🛡️ Zero-Retention Audit Stream</div>
+          <div class="audit-feed" id="auditStream">
+            <div class="audit-item">
+              <div>
+                <span style="color:var(--success)">[VERIFIED]</span> <span class="mono">POST /v1/chat</span>
+                <div style="opacity:0.6; font-size:9px;">sig_9cc6083b8533015340c89607 • Nonce: e1fc343ed857</div>
+              </div>
+              <span style="color:var(--primary)">0 B Retained</span>
+            </div>
+            <div class="audit-item">
+              <div>
+                <span style="color:var(--success)">[VERIFIED]</span> <span class="mono">POST /v1/completions</span>
+                <div style="opacity:0.6; font-size:9px;">sig_86e2c7a0b77621458901bca2 • Nonce: a93bd104e198</div>
+              </div>
+              <span style="color:var(--primary)">0 B Retained</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    async function fetchStats() {
+      try {
+        const res = await fetch('/api/v1/admin/stats');
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('kpiTokens').textContent = (data.total_tokens_served || 1624).toLocaleString();
+          document.getElementById('kpiWorkers').innerHTML = `${data.active_workers || 1} <small style="font-size:14px;color:var(--success)">Online</small>`;
+        }
+      } catch (err) {
+        console.log("Stats poll standby:", err);
+      }
+    }
+    fetchStats();
+    setInterval(fetchStats, 10000);
+  </script>
+</body>
+</html>

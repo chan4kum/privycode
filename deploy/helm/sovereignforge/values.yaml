@@ -1,0 +1,80 @@
+global:
+  environment: production
+  imagePullSecrets: []
+
+gateway:
+  replicaCount: 3
+  image:
+    repository: sovereignforge/gateway
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 75
+
+worker:
+  replicaCount: 2
+  image:
+    repository: sovereignforge/inference-worker
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  runtime: vllm
+  model: qwen2.5-coder-32b
+  service:
+    type: ClusterIP
+    port: 8001
+  resources:
+    limits:
+      nvidia.com/gpu: 1
+      cpu: 8000m
+      memory: 32Gi
+    requests:
+      nvidia.com/gpu: 1
+      cpu: 4000m
+      memory: 16Gi
+  nodeSelector:
+    accelerator: nvidia-gpu
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
+
+database:
+  host: postgresql-cluster.internal
+  port: 5432
+  name: sovereignforge
+  user: postgres
+  sslMode: require
+
+redis:
+  host: redis-cluster.internal
+  port: 6379
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+  hosts:
+    - host: ai.internal.acmecorp.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: sovereignforge-tls
+      hosts:
+        - ai.internal.acmecorp.com

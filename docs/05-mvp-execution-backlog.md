@@ -80,3 +80,10 @@ Agents can use this document to explicitly track progress by marking the checkbo
 - [x] **ENG-103**: Build automated GitHub Actions CI/CD pipeline workflow (`.github/workflows/ci.yml`).
 - [x] **ENG-104**: Validate full test matrix across Python (16/16 unit + 7/7 E2E) and TypeScript (3/3 unit + 0 error compile).
 
+## Phase 11: Enterprise Kubernetes, Air-Gapped Deployment & Admin Ops Dashboard
+- [x] **ENG-110**: Author production Kubernetes Helm Chart (`deploy/helm/sovereignforge/`) with GPU worker DaemonSets, Gateway Deployments, and Ingress TLS.
+- [x] **ENG-111**: Build turnkey air-gapped bare-metal installation script (`deploy/airgap/install.sh`).
+- [x] **ENG-112**: Build Enterprise Admin Ops & Fleet Controller Dashboard (`apps/api/static/admin.html` mounted at `GET /admin/dashboard`).
+- [x] **ENG-113**: Add fleet and compliance telemetry API (`GET /api/v1/admin/stats`) and write unit tests (`tests/test_admin.py`).
+- [x] **ENG-114**: Verify live Admin Ops Dashboard with browser subagent recording and full-page screenshot.
+

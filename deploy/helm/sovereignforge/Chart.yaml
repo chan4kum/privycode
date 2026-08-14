@@ -1,0 +1,16 @@
+apiVersion: v2
+name: sovereignforge
+description: Production Kubernetes Helm Chart for SovereignForge & PrivyCode Private AI Platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ai
+  - llm
+  - code-assistant
+  - private-cloud
+  - vllm
+  - privacy
+maintainers:
+  - name: SovereignForge Team
+    email: dev@acmecorp.com
