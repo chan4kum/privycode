@@ -66,3 +66,10 @@ Agents can use this document to explicitly track progress by marking the checkbo
 - [x] **ENG-083**: Integrate workspace file watchers in `apps/vscode-extension/src/extension.ts` for live in-memory symbol re-indexing.
 - [x] **ENG-084**: Write and pass SymbolGraph extraction unit tests (`apps/vscode-extension/test/symbolGraph.test.ts`).
 
+## Phase 9: Enterprise Governance & Secret Redaction
+- [x] **ENG-090**: Build high-speed in-memory secret, API key, and PII redactor engine (`apps/api/services/redactor.py`).
+- [x] **ENG-091**: Build cryptographic zero-retention compliance auditor and attestation header generator (`apps/api/services/audit.py`).
+- [x] **ENG-092**: Integrate pre-inference sanitization pipeline and audit headers into `/v1/chat`, `/v1/edits`, and `/v1/completions`.
+- [x] **ENG-093**: Write comprehensive unit tests for credential & PII redaction (`tests/test_redactor.py`).
+- [x] **ENG-094**: Verify live zero-retention cryptographic audit headers and secret replacement on Gateway.
+

@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from packages.contracts import (
+    ChatMessage,
     ChatRequest,
     CompletionRequest,
     EditRequest,
@@ -19,7 +20,9 @@ from packages.db.models import User
 
 from ..dependencies.auth import get_current_authenticated_user
 from ..middleware.rate_limiter import rate_limiter
+from ..services.audit import generate_zero_retention_headers
 from ..services.fim_context import build_semantic_fim_prompt
+from ..services.redactor import sanitize_context_files, sanitize_messages, sanitize_text
 from ..services.router import model_router
 from ..services.telemetry import record_usage_telemetry
 
@@ -77,6 +80,15 @@ async def chat_completions(
         request_type="chat",
     )
 
+    # 1. Sanitize messages and context files in-memory before prompt construction
+    clean_messages_raw, msg_tags = sanitize_messages([{"role": m.role, "content": m.content} for m in req.messages])
+    clean_context_files, file_tags = sanitize_context_files(req.context_files or [])
+    all_redacted_tags = list(set(msg_tags + file_tags))
+
+    # Re-assign sanitized messages to request
+    req.messages = [ChatMessage(role=m["role"], content=m["content"]) for m in clean_messages_raw]
+    req.context_files = clean_context_files
+
     formatted_messages = format_chat_messages_with_context(req)
     worker_payload = {
         "model": model_record.id,
@@ -87,6 +99,12 @@ async def chat_completions(
         },
         "stream": req.stream,
     }
+
+    audit_headers = generate_zero_retention_headers(
+        user_id=current_user.id,
+        endpoint="/v1/chat",
+        redacted_tags=all_redacted_tags,
+    )
 
     start_time = time.perf_counter()
 
@@ -123,7 +141,6 @@ async def chat_completions(
                 status_code = 500
             finally:
                 elapsed_ms = int((time.perf_counter() - start_time) * 1000)
-                # Direct asyncio task to guarantee execution even after stream closes
                 asyncio.create_task(
                     record_usage_telemetry(
                         user_id=current_user.id,
@@ -136,10 +153,12 @@ async def chat_completions(
                     )
                 )
 
+        headers = {"Cache-Control": "no-cache", "Connection": "keep-alive"}
+        headers.update(audit_headers)
         return StreamingResponse(
             sse_proxy_stream(),
             media_type="text/event-stream",
-            headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+            headers=headers,
         )
     else:
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -158,7 +177,7 @@ async def chat_completions(
                 latency_ms=elapsed_ms,
                 status_code=res.status_code,
             )
-            return JSONResponse(content=data, status_code=res.status_code)
+            return JSONResponse(content=data, status_code=res.status_code, headers=audit_headers)
 
 
 @router.post("/edits")
@@ -184,12 +203,17 @@ async def code_edits(
         request_type="edit",
     )
 
+    # 1. Sanitize edit input and instruction in-memory
+    clean_input, input_tags = sanitize_text(req.input)
+    clean_instruction, inst_tags = sanitize_text(req.instruction)
+    all_redacted_tags = list(set(input_tags + inst_tags))
+
     edit_prompt = (
         f"You are a code refactoring engine.\n"
         f"File: {req.file_path or 'unknown'}\n"
         f"Language: {req.language or 'python'}\n"
-        f"Instruction: {req.instruction}\n\n"
-        f"Original Code:\n```\n{req.input}\n```\n\n"
+        f"Instruction: {clean_instruction}\n\n"
+        f"Original Code:\n```\n{clean_input}\n```\n\n"
         f"Provide the exact refactored replacement code."
     )
 
@@ -202,6 +226,12 @@ async def code_edits(
         },
         "stream": req.stream,
     }
+
+    audit_headers = generate_zero_retention_headers(
+        user_id=current_user.id,
+        endpoint="/v1/edits",
+        redacted_tags=all_redacted_tags,
+    )
 
     start_time = time.perf_counter()
 
@@ -248,10 +278,12 @@ async def code_edits(
                     )
                 )
 
+        headers = {"Cache-Control": "no-cache", "Connection": "keep-alive"}
+        headers.update(audit_headers)
         return StreamingResponse(
             edit_stream_generator(),
             media_type="text/event-stream",
-            headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+            headers=headers,
         )
     else:
         async with httpx.AsyncClient(timeout=60.0) as client:
@@ -270,7 +302,7 @@ async def code_edits(
                 latency_ms=elapsed_ms,
                 status_code=res.status_code,
             )
-            return JSONResponse(content=data, status_code=res.status_code)
+            return JSONResponse(content=data, status_code=res.status_code, headers=audit_headers)
 
 
 @router.post("/completions")
@@ -296,11 +328,14 @@ async def code_completions(
         request_type="autocomplete",
     )
 
+    # 1. Sanitize prompt in-memory before FIM windowing
+    clean_prompt, prompt_tags = sanitize_text(req.prompt)
+
     # Apply semantic AST/token-aware context windowing if raw prefix/suffix isn't already tagged
-    formatted_prompt = req.prompt
-    if "<|fim_prefix|>" not in req.prompt and "<PRE>" not in req.prompt:
+    formatted_prompt = clean_prompt
+    if "<|fim_prefix|>" not in clean_prompt and "<PRE>" not in clean_prompt:
         formatted_prompt = build_semantic_fim_prompt(
-            prefix=req.prompt,
+            prefix=clean_prompt,
             suffix="",
             model_name=model_record.id,
         )
@@ -315,6 +350,12 @@ async def code_completions(
         },
         "stream": req.stream,
     }
+
+    audit_headers = generate_zero_retention_headers(
+        user_id=current_user.id,
+        endpoint="/v1/completions",
+        redacted_tags=prompt_tags,
+    )
 
     start_time = time.perf_counter()
 
@@ -360,10 +401,12 @@ async def code_completions(
                     )
                 )
 
+        headers = {"Cache-Control": "no-cache", "Connection": "keep-alive"}
+        headers.update(audit_headers)
         return StreamingResponse(
             fim_stream_generator(),
             media_type="text/event-stream",
-            headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
+            headers=headers,
         )
     else:
         async with httpx.AsyncClient(timeout=10.0) as client:
@@ -382,4 +425,4 @@ async def code_completions(
                 latency_ms=elapsed_ms,
                 status_code=res.status_code,
             )
-            return JSONResponse(content=data, status_code=res.status_code)
+            return JSONResponse(content=data, status_code=res.status_code, headers=audit_headers)
