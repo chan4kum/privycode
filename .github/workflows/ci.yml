@@ -1,4 +1,4 @@
-name: SovereignForge & PrivyCode CI/CD
+name: SovereignForge & PrivyCode CI Pipeline
 
 on:
   push:
@@ -7,6 +7,29 @@ on:
     branches: [main]
 
 jobs:
+  terraform-validation:
+    name: Terraform IaC Lint & Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Terraform Format Check
+        working-directory: deploy/gcp/terraform
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        working-directory: deploy/gcp/terraform
+        run: |
+          terraform init -backend=false
+          terraform validate
+
   backend-tests:
     name: Backend Pytest & E2E Verification
     runs-on: ubuntu-latest
@@ -52,7 +75,7 @@ jobs:
           pip install -r packages/db/requirements.txt
           pip install -r apps/api/requirements.txt
           pip install -r services/inference_worker/requirements.txt
-          pip install pytest pytest-asyncio tabulate
+          pip install pytest pytest-asyncio tabulate httpx
 
       - name: Seed Database
         env:
@@ -68,7 +91,7 @@ jobs:
           PYTHONPATH=. pytest tests/
 
   extension-build:
-    name: VS Code Extension Build & Package
+    name: VS Code Extension Build, Test & Package
     runs-on: ubuntu-latest
 
     steps:
@@ -108,7 +131,7 @@ jobs:
           if-no-files-found: error
 
   docker-build-verification:
-    name: Production Docker Images Build Check
+    name: Production Multi-Stage Docker Image Builds
     runs-on: ubuntu-latest
 
     steps:
