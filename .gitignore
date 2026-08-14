@@ -60,3 +60,9 @@ redisdata/
 
 # Antigravity agent temp
 .agents/
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl

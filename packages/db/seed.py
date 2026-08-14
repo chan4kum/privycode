@@ -1,7 +1,20 @@
 import asyncio
 import hashlib
-from database import engine, AsyncSessionLocal
-from models import Base, Plan, Organization, User, ApiKey, ModelRegistry
+import os
+import sys
+from pathlib import Path
+
+# Ensure packages/db is in sys.path
+db_dir = str(Path(__file__).resolve().parent)
+if db_dir not in sys.path:
+    sys.path.insert(0, db_dir)
+
+root_dir = str(Path(__file__).resolve().parents[2])
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
+
+from database import AsyncSessionLocal, engine
+from models import ApiKey, Base, ModelRegistry, Organization, Plan, User
 
 async def seed_database():
     print("Creating tables...")

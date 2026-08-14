@@ -1,3 +1,4 @@
+import os
 import pytest
 import uuid
 from fastapi import HTTPException
@@ -11,7 +12,8 @@ from packages.db.models import Organization, Plan, UsageRecord, User
 
 @pytest.mark.asyncio
 async def test_tier_enforcer_pro_plan_allowed():
-    engine = create_async_engine(common_settings.database_url, poolclass=NullPool)
+    db_url = os.getenv("DATABASE_URL", common_settings.database_url)
+    engine = create_async_engine(db_url, poolclass=NullPool)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
@@ -49,7 +51,8 @@ async def test_tier_enforcer_pro_plan_allowed():
 
 @pytest.mark.asyncio
 async def test_tier_enforcer_starter_quota_exhausted():
-    engine = create_async_engine(common_settings.database_url, poolclass=NullPool)
+    db_url = os.getenv("DATABASE_URL", common_settings.database_url)
+    engine = create_async_engine(db_url, poolclass=NullPool)
     session_factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with session_factory() as session:
