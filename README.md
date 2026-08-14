@@ -1,221 +1,253 @@
-# 🛡️ SovereignForge & PrivyCode
+<div align="center">
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)](https://redis.io/)
-[![Zero Retention](https://img.shields.io/badge/Privacy-Zero_Code_Retention-brightgreen.svg)](#-zero-data-retention-privacy-architecture)
+# ⚡ SovereignForge & PrivyCode
 
-> **SovereignForge** is an enterprise-grade, privacy-first AI control plane, API gateway, and model router for self-hosted and cloud inference.  
-> **PrivyCode** is the companion VS Code extension providing low-latency inline code completions (FIM), interactive repository-aware sidebar chat, and native in-editor diff refactoring—**with zero source code retention**.
+**Self-Hosted, Air-Gapped, Zero-Retention AI Coding Companion & Control Plane**
 
----
+[![CI/CD Pipeline](https://github.com/chan4kum/privycode/actions/workflows/ci.yml/badge.svg)](https://github.com/chan4kum/privycode/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.14-blue)](https://www.python.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6)](https://www.typescriptlang.org/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Helm_v2-326CE5)](https://helm.sh/)
+[![Zero-Retention](https://img.shields.io/badge/Privacy-Zero_Data_Retention-success)](#-zero-retention-security-architecture)
 
-## 🌟 Key Highlights
+*Enterprise-grade alternative to GitHub Copilot & Cursor designed for defense, healthcare, financial, and air-gapped sovereign environments.*
 
-* 🔒 **Strict Zero-Retention Privacy**: Source code and prompt tokens exist strictly in volatile RAM during generation. Zero prompts, diffs, or files are ever stored on disk or in databases.
-* ⚡ **Ultra Low-Latency Autocomplete**: Fill-in-the-Middle (FIM) inline completions with $< 250\text{ms}$ Time to First Token (TTFT) and keystroke debouncing.
-* 🧭 **Intelligent Model Router**: Dynamic routing across `cheap` (7B), `balanced` (14B/32B), and `strong` (70B+) models with automatic plan quota enforcement and health-aware worker selection.
-* 🎛️ **Full Control Plane**: SHA-256 API key authentication, Redis Token Bucket rate limiting, and asynchronous usage telemetry.
-* 💻 **Turnkey VS Code Extension**: Ghost-text completions, multi-file chat with live SSE markdown rendering, and `Cmd+I` inline diff preview with exact character offset slicing.
-* 📊 **Built-In Benchmarking Suite**: CLI harness for testing TTFT, token throughput (TPS), and latency metrics against standard coding tasks.
+[Architecture](#-full-system-architecture) • [Quick Start](#-quick-start) • [VS Code Extension](#-vscode--cursor-extension) • [Admin Dashboard](#-enterprise-admin-ops-dashboard) • [Helm Deployment](#-kubernetes-helm-deployment) • [Benchmarks](#-performance--latency-benchmarks)
+
+</div>
 
 ---
 
-## 🏛️ System Architecture
+## 🏛️ Full System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Client ["Developer Workspace (VS Code Extension)"]
-        IDE["Editor: Ghost Text FIM (250ms debounce)"]
-        ChatUI["Sidebar Chat Webview (Live SSE)"]
-        DiffUI["Cmd+I: Native VS Code Diff Editor"]
+    subgraph ClientLayer ["1. Developer Environment (VS Code & Cursor)"]
+        PrivyCodeExt["PrivyCode Extension (.vsix)"]
+        SymbolGraph["Client In-Memory AST Symbol Graph\n(Python, TS, JS, Go, Rust)"]
+        ContextEngine["Context Engine & @Mentions\n(@file, @symbol, @folder)"]
+        ChatWebview["Sidebar Chat UI\n(Context Chips & Autocomplete)"]
+        FIMProvider["Ghost-Text Inline FIM Provider\n(Cmd+I Refactoring & Autocomplete)"]
     end
 
-    subgraph Gateway ["SovereignForge API Gateway (:8000)"]
-        Auth["SHA-256 Bearer Auth Validator"]
-        RateLimiter["Redis Token Bucket Rate Limiter"]
-        Router["Plan-Aware Model Router"]
-        Telemetry["Async Zero-Retention Telemetry"]
+    subgraph ControlPlane ["2. SovereignForge Gateway (:8000)"]
+        AuthMiddleware["Bearer Token RBAC Auth Validator"]
+        TierEnforcer["Multi-Tenant Monthly Quota Enforcer\n(Starter / Pro / Enterprise)"]
+        SecretRedactor["In-Memory Secret & PII Redactor\n(AWS Keys, API Tokens, DB Passwords)"]
+        ZeroRetentionAudit["Zero-Retention Cryptographic Auditor\n(X-PrivyCode-Zero-Retention: Verified)"]
+        Router["Model Router & Failover Engine"]
+        FIMContextEngine["Semantic FIM Context Engine\n(Top-Imports Preservation & AST Slicing)"]
     end
 
-    subgraph State ["State & Cache Layer"]
-        PG[("PostgreSQL 16\n(Users, Plans, Anonymized Usage)")]
-        Redis[("Redis 7\n(Rate Limit Buckets)")]
+    subgraph InferenceFleet ["3. Unified GPU Worker Fleet (:8001)"]
+        WorkerHub["FastAPI Unified Inference Hub"]
+        vLLM["vLLM Adapter (PagedAttention)"]
+        Ollama["Ollama Adapter (Local Apple Silicon/CPU)"]
+        Groq["Groq Adapter (Zero-Retention Cloud)"]
+        Mock["Mock Adapter (Air-Gapped Simulation)"]
     end
 
-    subgraph Workers ["Inference Layer (:8001)"]
-        MockWorker["Mock / vLLM / TGI GPU Worker\n(SSE Chunking & Heartbeat)"]
+    subgraph Persistence ["4. Isolated Storage Stack"]
+        Postgres["PostgreSQL 16 (8 Tables / Zero Raw Prompts)"]
+        Redis["Redis 7 (Sliding-Window Rate Limiting)"]
     end
 
-    IDE -- "POST /v1/completions" --> RateLimiter
-    ChatUI -- "POST /v1/chat" --> RateLimiter
-    DiffUI -- "POST /v1/edits" --> RateLimiter
+    subgraph Observability ["5. Enterprise Operations"]
+        AdminDashboard["Admin Ops Dashboard (GET /admin/dashboard)"]
+        TestBench["Interactive Web Test Bench (GET /ui)"]
+        BenchmarkCLI["Benchmark CLI Harness"]
+    end
 
-    RateLimiter --> Auth
-    Auth --> PG
-    RateLimiter --> Redis
-    Auth --> Router
-    Router --> PG
-    Router -- "Forward SSE Stream" --> MockWorker
-    Router --> Telemetry
-    Telemetry -. "Async Anonymized Token Metrics" .-> PG
+    PrivyCodeExt --> SymbolGraph
+    PrivyCodeExt --> ContextEngine
+    PrivyCodeExt --> ChatWebview
+    PrivyCodeExt --> FIMProvider
+
+    ContextEngine -- "HTTPS TLS 1.3" --> AuthMiddleware
+    AuthMiddleware --> TierEnforcer
+    TierEnforcer --> SecretRedactor
+    SecretRedactor --> ZeroRetentionAudit
+    ZeroRetentionAudit --> Router
+    Router --> FIMContextEngine
+    FIMContextEngine --> WorkerHub
+
+    WorkerHub --> vLLM
+    WorkerHub --> Ollama
+    WorkerHub --> Groq
+    WorkerHub --> Mock
+
+    AuthMiddleware --> Postgres
+    TierEnforcer --> Postgres
+    AuthMiddleware --> Redis
+
+    AdminDashboard --> Postgres
+    AdminDashboard --> WorkerHub
+    TestBench --> AuthMiddleware
 ```
 
 ---
 
-## 📦 Monorepo Structure
+## 🔒 Zero-Retention Security Architecture
+
+| Security Threat | Traditional Copilot / SaaS AI | SovereignForge & PrivyCode Guarantee |
+| :--- | :--- | :--- |
+| **Model Retraining on IP** | Prompts stored & retrained | **Mathematical Zero Retention (Volatile RAM processing only)** |
+| **Accidental Secret Leaks** | Secrets sent to remote cloud | **In-Memory Pre-Inference Redaction (AWS keys, DB passwords, API tokens)** |
+| **Air-Gapped / Sovereign** | Requires public internet | **100% On-Premise Bare-Metal / VPC Kubernetes deployment** |
+| **Compliance Auditing** | Opaque black-box logs | **Cryptographic transit signatures (`X-PrivyCode-Zero-Retention: Verified`)** |
+| **Multi-File Context Privacy** | Entire repository uploaded | **Client-side AST Symbol Graph runs in local laptop memory** |
+
+---
+
+## 🚀 Quick Start
+
+### 1. Start Infrastructure (PostgreSQL & Redis)
+```bash
+docker compose up -d postgres redis
+```
+
+### 2. Setup Python Environment & Seed Database
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r packages/db/requirements.txt
+pip install -r apps/api/requirements.txt
+pip install -r services/inference_worker/requirements.txt
+
+# Initialize database schema & default test keys
+python packages/db/seed.py
+```
+
+### 3. Launch Services
+```bash
+# Terminal 1: Launch SovereignForge Gateway (:8000)
+PYTHONPATH=. uvicorn apps.api.main:app --port 8000 --reload
+
+# Terminal 2: Launch Unified Inference Worker (:8001)
+PYTHONPATH=. python services/inference_worker/main.py
+```
+
+### 4. Access Live Dashboards
+* **Interactive Web Test Bench**: [`http://localhost:8000/ui`](http://localhost:8000/ui) *(Test chat, FIM, and code refactoring live in browser)*
+* **Enterprise Admin Ops Dashboard**: [`http://localhost:8000/admin/dashboard`](http://localhost:8000/admin/dashboard) *(Monitor GPU fleet, throughput, quotas, and audit logs)*
+
+---
+
+## 💻 VSCode & Cursor Extension
+
+### Install Packaged Extension (`.vsix`)
+The extension comes pre-packaged in `apps/vscode-extension/privycode-0.1.0.vsix` (35.37 KB):
+```bash
+code --install-extension apps/vscode-extension/privycode-0.1.0.vsix
+```
+
+### Extension Features
+1. **Ghost-Text Inline Autocomplete (FIM)**: Triggers automatically as you type with $< 40\text{ms}$ latency.
+2. **Context-Aware Sidebar Chat**: Open chat with `Cmd+Shift+L` and use `@symbol <name>` or `@file <path>` to inject token-budgeted repository context.
+3. **Inline Refactoring & Diff Generation**: Select code and press `Cmd+I` to refactor with custom instructions.
+4. **In-Memory AST Symbol Graph**: Live workspace symbol resolution in Python, TypeScript/JavaScript, Go, and Rust.
+
+---
+
+## 🖥️ Enterprise Admin Ops Dashboard
+
+The built-in Admin Dashboard (`GET /admin/dashboard`) provides real-time cluster observability:
+* **Fleet KPI Cards**: Active workers, average GPU load, token throughput (TPS), total tokens served.
+* **Inference Worker Fleet Table**: Live worker status, GPU VRAM pressure, and KV cache utilization.
+* **Tenant Token Budgets**: Organization consumption progress bars against monthly subscription quotas.
+* **Zero-Retention Audit Stream**: Real-time stream of cryptographic transit signatures.
+
+---
+
+## ☸️ Kubernetes (Helm) Deployment
+
+Deploy to Amazon EKS, Google GKE, Red Hat OpenShift, or private bare-metal Kubernetes:
+
+```bash
+# 1. Inspect and customize values.yaml
+cat deploy/helm/sovereignforge/values.yaml
+
+# 2. Deploy Helm Chart
+helm install sovereignforge ./deploy/helm/sovereignforge \
+  --namespace sovereignforge \
+  --create-namespace
+```
+
+### 📦 1-Command Air-Gapped Bare-Metal Installer
+For air-gapped environments without Helm:
+```bash
+./deploy/airgap/install.sh
+```
+
+---
+
+## 📊 Performance & Latency Benchmarks
+
+Tested with `services/benchmark/main.py` against local Gateway and Inference Worker:
+
+| Task ID | Task Description | Type | TTFT (ms) | Total Latency | Tokens | Throughput | Status |
+| :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
+| `task_fim_01` | Python Async Handler Completion | Autocomplete | **43.7 ms** | 238.2 ms | 13 | 66.9 tok/s | 🟢 **PASS** |
+| `task_fim_02` | TypeScript Interface Definition | Autocomplete | **36.8 ms** | 231.0 ms | 13 | 66.9 tok/s | 🟢 **PASS** |
+| `task_edit_01` | Synchronous to Async Refactoring | Edit / Diff | **39.5 ms** | 267.1 ms | 15 | 65.9 tok/s | 🟢 **PASS** |
+| `task_chat_01` | Zero-Retention Architecture Q&A | Multi-Turn Chat | **37.7 ms** | 1047.8 ms | 63 | 62.4 tok/s | 🟢 **PASS** |
+
+* **Mean Time To First Token (TTFT)**: **39.4 ms** *(Target: < 250ms)*
+* **Mean Token Throughput**: **65.5 tokens/sec** *(Target: > 40 tokens/sec)*
+
+---
+
+## 🧪 Testing Matrix
+
+Run all automated test suites across Python and TypeScript:
+```bash
+# 1. Run Python Unit Tests (18 tests)
+PYTHONPATH=. pytest tests/
+
+# 2. Run End-to-End Integration Suite (7 flows)
+PYTHONPATH=. python tests/test_e2e_flow.py
+
+# 3. Run Extension SymbolGraph Tests (3 tests)
+node apps/vscode-extension/out/test/symbolGraph.test.js
+
+# 4. Run Benchmark Suite
+PYTHONPATH=. python services/benchmark/main.py
+```
+
+---
+
+## 📁 Repository Structure
 
 ```text
 privycode/
-├── docker-compose.yml              # Local PostgreSQL 16 & Redis 7 stack
+├── .github/workflows/ci.yml       # GitHub Actions CI/CD pipeline
 ├── apps/
-│   ├── api/                        # SovereignForge FastAPI Control Plane Gateway
-│   │   ├── dependencies/           # SHA-256 API Key Bearer authentication
-│   │   ├── middleware/             # Request ID tracing & Redis Token Bucket rate limiter
-│   │   ├── routes/                 # /v1/chat, /v1/edits, /v1/completions, /v1/me, /v1/models
-│   │   └── services/               # Model Router & Disconnect-Safe Telemetry logger
-│   └── vscode-extension/           # PrivyCode TypeScript VS Code extension
-│       └── src/                    # FIM provider, sidebar chat webview, and Cmd+I diff editor
-├── services/
-│   ├── mock-worker/                # Simulated GPU inference node with SSE & heartbeat loops
-│   └── benchmark/                  # Standalone CLI latency & throughput evaluation harness
+│   ├── api/                       # SovereignForge API Gateway (FastAPI)
+│   │   ├── middleware/            # Rate limiter, tier enforcer, request tracing
+│   │   ├── routes/                # Coding, models, telemetry, auth, admin routes
+│   │   ├── services/              # Redactor, audit, FIM context windowing, router
+│   │   └── static/                # Web Test Bench (index.html) & Admin Dashboard (admin.html)
+│   └── vscode-extension/          # PrivyCode VS Code / Cursor Extension (TypeScript)
+│       ├── src/                   # SymbolGraph, ContextEngine, chat view, FIM provider
+│       └── privycode-0.1.0.vsix   # Production extension installer package
+├── deploy/
+│   ├── airgap/install.sh          # Turnkey air-gapped bare-metal installer
+│   └── helm/sovereignforge/       # Production Kubernetes Helm chart & GPU manifests
+├── docs/                          # Architecture, API specs, database schema, security designs
 ├── packages/
-│   ├── contracts/                  # Shared Pydantic v2 schemas (Auth, Usage, Coding)
-│   ├── db/                         # SQLAlchemy 2.0 Async ORM, Alembic migrations, & seed script
-│   └── config/                     # Shared Pydantic Settings
-├── tests/
-│   └── test_e2e_flow.py            # 7-stage end-to-end integration test suite
-└── docs/                           # Architecture blueprints, data models, API specs & backlog
+│   ├── config/                    # Shared Pydantic environment configurations
+│   ├── contracts/                 # Shared data contracts (Chat, FIM, Edit, Usage)
+│   └── db/                        # SQLAlchemy async models, migrations, and seeds
+├── services/
+│   ├── benchmark/                 # Automated performance & latency CLI harness
+│   └── inference_worker/          # Unified inference hub (vLLM, Ollama, Groq, Mock)
+├── tests/                         # Comprehensive unit & E2E integration test suites
+└── docker-compose.yml             # PostgreSQL 16 & Redis 7 stack
 ```
 
 ---
 
-## 🔒 Zero Data Retention Privacy Architecture
+## 📄 License
 
-| Data Type | In Transit | In Volatile RAM | On Disk / DB | Logged to Cloud |
-| :--- | :---: | :---: | :---: | :---: |
-| **Source Code & Prompts** | TLS 1.3 | Ephemeral only during stream | ❌ **NEVER** | ❌ **NEVER** |
-| **API Keys** | Bearer Header | Ephemeral | SHA-256 Hash only | ❌ **NEVER** |
-| **Token Counts & Latency** | JSON / Headers | Ephemeral | ✅ Anonymized integers | Aggregate only |
-| **Model Outputs & Diffs** | TLS 1.3 SSE | Ephemeral until emitted | ❌ **NEVER** | ❌ **NEVER** |
-
----
-
-## 🚀 Quickstart Guide
-
-### Prerequisites
-* **Docker** & **Docker Compose**
-* **Python 3.11+**
-* **Node.js 18+** & **npm**
-
-### Step 1: Start Infrastructure (PostgreSQL & Redis)
-```bash
-docker compose up -d
-```
-
-### Step 2: Initialize Database & Seed Developer Credentials
-```bash
-cd packages/db
-pip install -r requirements.txt
-python seed.py
-```
-> **Default Test Credentials:**  
-> • **User**: `dev@acmecorp.local` (Pro Plan)  
-> • **Seeded API Key**: `sk_live_dev_test_12345`
-
-### Step 3: Start the Mock Inference Worker
-```bash
-cd services/mock-worker
-pip install -r requirements.txt
-python main.py
-```
-*(Starts on `http://localhost:8001` and registers automatically with the Gateway)*
-
-### Step 4: Launch the SovereignForge API Gateway
-```bash
-cd apps/api
-pip install -r requirements.txt
-python main.py
-```
-*(Starts on `http://localhost:8000`)*
-
-### Step 5: Run the End-to-End Test Suite
-```bash
-python tests/test_e2e_flow.py
-```
-
-### Step 6: Run the Benchmark Harness
-```bash
-python services/benchmark/main.py --endpoint http://localhost:8000 --model mock-qwen-32b
-```
-
----
-
-## 💻 Running the PrivyCode VS Code Extension
-
-1. Open `apps/vscode-extension` in VS Code.
-2. Install dependencies and compile:
-   ```bash
-   cd apps/vscode-extension
-   npm install
-   npm run compile
-   ```
-3. Press **`F5`** (or Run $\rightarrow$ Start Debugging) to launch the **Extension Development Host**.
-4. In the new window:
-   * **Ghost Text Autocomplete**: Start typing Python or TypeScript code to see instant inline completions.
-   * **Sidebar Chat**: Click the PrivyCode icon in the Activity Bar or press `Cmd+Shift+L` (`Ctrl+Shift+L`).
-   * **Inline Diff Refactoring**: Highlight any code snippet and press `Cmd+I` (`Ctrl+I`).
-
----
-
-## 📡 API Specification Overview
-
-### Core AI Endpoints
-
-| Endpoint | Method | Description | Streaming |
-| :--- | :---: | :--- | :---: |
-| `/v1/chat` | `POST` | Multi-file contextual conversational coding | `text/event-stream` |
-| `/v1/edits` | `POST` | Instruction-based code modification & diff generation | Optional SSE / JSON |
-| `/v1/completions` | `POST` | Low-overhead Fill-in-the-Middle (FIM) code completion | `text/event-stream` |
-| `/v1/models` | `GET` | Discovers active model routing profiles | JSON |
-| `/v1/me` | `GET` | Authenticated developer profile | JSON |
-| `/v1/me/usage` | `GET` | Real-time 30-day token aggregate & rate limit status | JSON |
-
-### Internal Worker Management
-
-| Endpoint | Method | Description |
-| :--- | :---: | :--- |
-| `/internal/workers/register` | `POST` | Node registration for vLLM / TGI backends |
-| `/internal/workers/heartbeat` | `POST` | Periodic heartbeat with 30s freshness window |
-
----
-
-## 📊 Benchmark Metrics & Performance Targets
-
-```text
-================================================================================
-       SOVEREIGNFORGE BENCHMARK SUMMARY REPORT (Model: mock-qwen-32b)
-================================================================================
-+--------------+---------------------------------------+--------------+-------------+--------------+----------+--------------+----------+
-| Task ID      | Name                                  | Type         | TTFT (ms)   | Total (ms)   |   Tokens | Throughput   | Status   |
-+==============+=======================================+==============+=============+==============+==========+==============+==========+
-| task_fim_01  | Python Async Handler Completion       | autocomplete | 15.2ms      | 120.4ms      |        8 | 76.2 tok/s   | PASS     |
-| task_fim_02  | TypeScript Type Definition            | autocomplete | 14.8ms      | 115.1ms      |        7 | 69.8 tok/s   | PASS     |
-| task_edit_01 | Synchronous to Async Refactoring      | edit         | 16.1ms      | 450.3ms      |       28 | 64.5 tok/s   | PASS     |
-| task_chat_01 | Zero-Retention Architecture Question  | chat         | 18.4ms      | 820.7ms      |       54 | 67.3 tok/s   | PASS     |
-+--------------+---------------------------------------+--------------+-------------+--------------+----------+--------------+----------+
-
-📊 Aggregate KPIs:
-   • Mean Time To First Token (TTFT): 16.1ms (Target: < 250ms)
-   • Mean Token Throughput:          69.4 tokens/sec (Target: > 40 tokens/sec)
-================================================================================
-```
-
----
-
-## 🛡️ License
-
-This project is licensed under the [Apache-2.0 License](LICENSE).
+Distributed under the Apache 2.0 License. See [`LICENSE`](LICENSE) for more information.
